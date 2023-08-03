@@ -53,7 +53,7 @@ def DB_Cursor(DB_Connect):
         return document
     
     def update_document(self, query: dict, update: dict):
-        update = db_cursor.update_one(query, update)
+        update = db_cursor.update_one(query, {"$set": {update}})
 
     def delete_document(self, query):
         delete = db_cursor.delete_one(query)
