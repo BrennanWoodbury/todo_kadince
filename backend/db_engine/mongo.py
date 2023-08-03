@@ -1,0 +1,59 @@
+from pymongo import MongoClient
+from dotenv import dotenv_values
+
+class DB_Connect:  # one instance of this object per database
+    def __init__(self, database: str, collection: str):
+        self.user = env["MONGODB_USER"]
+        self.passwd = env["MONGODB_PASSWD"]
+        self.uri = env["MONGODB_URI"]
+        self.connection_string = f"mongodb://{self.user}:{self.passwd}@{self.uri}"
+
+        self.client = MongoClient(self.connection_string)
+        self.db = self.client[database]  # user input
+        self.collection = collection
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.client.close()
+
+
+    # test connection  
+    def test_connection(self):
+        print(self.client.list_database_names())
+
+    def close_connection(self):
+        self.client.close()
+        print("Client Closed")
+
+
+
+    
+
+def DB_Cursor(DB_Connect):
+    def __init__(self, database: str, collection: str):
+        super().__init__(database, collection)
+        db_cursor = self.db[self.collection]
+        self.document_id = None
+        self.document_ids = None
+
+    def create_document(self, insert: dict):
+        inserted_doc = db.cursor.insert_one(insert)
+        self.document_id = inserted_doc.inserted_id
+        return self.document_id
+
+    def create_documents(self, insert: list): 
+        inserted_docs = db_cursor.insert_many(insert)
+        self.document_ids = inserted_docs.inserted_ids
+        return self.document_ids
+
+    def read_document(self, query: dict): 
+        document = db_cursor.find_one(query)
+        return document
+    
+    def update_document(self, query: dict, update: dict):
+        update = db_cursor.update_one(query, update)
+
+    def delete_document(self, query):
+        delete = db_cursor.delete_one(query)
