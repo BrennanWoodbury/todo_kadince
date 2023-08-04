@@ -1,8 +1,13 @@
 from pymongo import MongoClient
 from dotenv import dotenv_values
 
+
+env = dotenv_values()
+
 class DB_Connect:  # one instance of this object per database
     def __init__(self, database: str, collection: str):
+        self.database = database
+        self.collection = collection
         self.user = env["MONGODB_USER"]
         self.passwd = env["MONGODB_PASSWD"]
         self.uri = env["MONGODB_URI"]
@@ -10,7 +15,6 @@ class DB_Connect:  # one instance of this object per database
 
         self.client = MongoClient(self.connection_string)
         self.db = self.client[database]  # user input
-        self.collection = collection
 
     def __enter__(self):
         pass
@@ -31,7 +35,7 @@ class DB_Connect:  # one instance of this object per database
 
     
 
-def DB_Cursor(DB_Connect):
+class DB_Cursor(DB_Connect):
     def __init__(self, database: str, collection: str):
         super().__init__(database, collection)
         db_cursor = self.db[self.collection]
