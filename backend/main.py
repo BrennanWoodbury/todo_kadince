@@ -1,7 +1,15 @@
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
 from db_engine.mongo import DB_Cursor as db
-from bson import json_util
+from bson import json_util, ObjectId
+from pydantic import BaseModel
+import pydantic
+import logging
+import json
+
+# pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
+
+logging.basicConfig(filename="/var/log/fastapi/fastapi.log", level=logging.DEBUG)
 
 # from starlette.responses import RedirectResponse
 # from starlette.templating import Jinja2Templates
@@ -24,7 +32,7 @@ def return_root():
 @app.post("/api/db_engine/create")
 def create_document(insert: dict):
     todo_db.create_document(insert)
-    return {"status": "Record Created", "id": f"{todo_db.document_id}"}
+    return {"status": "Record Created"}
 
 
 @app.get("/api/db_engine/read")
@@ -57,3 +65,16 @@ def get_tasks():
     for i in document:
         tasks["tasks"].append(i)
     return tasks
+
+
+class Task(BaseModel):
+    Name: str
+
+@app.post("/api/new_task", status_code=201)
+def new_task(task: Task):
+    # add a task 
+    # intake a singlular task, add it to the database 
+    # task = {"Name": task}
+    logging.debug(jsonable_encoder(task))
+    new_task = todo_db.create_document(jsonable_encoder(task))
+    return {"Status": "Success", "_id": json.loads(json_util.dumps(new_task))}

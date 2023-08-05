@@ -44,7 +44,7 @@ class DB_Cursor(DB_Connect):
         self.document_ids = None
 
     def create_document(self, insert: dict):
-        inserted_doc = self.db.cursor.insert_one(insert)
+        inserted_doc = self.db_cursor.insert_one(insert)
         self.document_id = inserted_doc.inserted_id
         return self.document_id
 
