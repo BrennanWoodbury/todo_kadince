@@ -3,7 +3,7 @@ function displayTasks() {
     fetch("/api/tasks")
         .then(response => response.json())
         .then(data => {
-            const tasksArray = data.tasks; // Access the tasks array from the data object
+            const tasksArray = data.tasks;
 
             const recordsContainer = document.getElementById("card-list");
             let recordsHTML = "";
