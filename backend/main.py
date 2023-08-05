@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from db_engine.mongo import DB_Cursor as db
 from bson import json_util, ObjectId
 from pydantic import BaseModel
@@ -70,11 +71,22 @@ def get_tasks():
 class Task(BaseModel):
     Name: str
 
-@app.post("/api/new_task", status_code=201)
+@app.post("/api/new_task")
 def new_task(task: Task):
-    # add a task 
-    # intake a singlular task, add it to the database 
-    # task = {"Name": task}
-    logging.debug(jsonable_encoder(task))
-    new_task = todo_db.create_document(jsonable_encoder(task))
-    return {"Status": "Success", "_id": json.loads(json_util.dumps(new_task))}
+    task = jsonable_encoder(task)
+    if task["Name"] == "":
+        return JSONResponse(content = "", status_code=204)
+    check_task_exists = todo_db.read_document(task)
+    
+    results = []
+    for i in check_task_exists:
+        logging.debug(i)
+        results.append(i)
+
+    if len(results) > 0:
+        return JSONResponse(content="Duplicate Value", status_code=409)
+    elif len(results) == 0: 
+        new_task = todo_db.create_document(task)
+        return JSONResponse(content="Success", status_code=201)
+
+

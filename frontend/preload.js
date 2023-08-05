@@ -1,4 +1,4 @@
-// load the tasklist as it currently stands
+// load the tasklist
 function displayTasks() {
     fetch("/api/tasks")
         .then(response => response.json())
