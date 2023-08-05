@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from dotenv import dotenv_values
 
 
-env = dotenv_values()
+env = dotenv_values(dotenv_path="/code/todo_kadince/backend/.env")
 
 class DB_Connect:  # one instance of this object per database
     def __init__(self, database: str, collection: str):
@@ -26,6 +26,7 @@ class DB_Connect:  # one instance of this object per database
     # test connection  
     def test_connection(self):
         print(self.client.list_database_names())
+        
 
     def close_connection(self):
         self.client.close()
@@ -38,26 +39,26 @@ class DB_Connect:  # one instance of this object per database
 class DB_Cursor(DB_Connect):
     def __init__(self, database: str, collection: str):
         super().__init__(database, collection)
-        db_cursor = self.db[self.collection]
+        self.db_cursor = self.db[self.collection]
         self.document_id = None
         self.document_ids = None
 
     def create_document(self, insert: dict):
-        inserted_doc = db.cursor.insert_one(insert)
+        inserted_doc = self.db.cursor.insert_one(insert)
         self.document_id = inserted_doc.inserted_id
         return self.document_id
 
     def create_documents(self, insert: list): 
-        inserted_docs = db_cursor.insert_many(insert)
+        inserted_docs = self.db_cursor.insert_many(insert)
         self.document_ids = inserted_docs.inserted_ids
         return self.document_ids
 
     def read_document(self, query: dict): 
-        document = db_cursor.find_one(query)
+        document = self.db_cursor.find(query, {"_id": 0})
         return document
     
     def update_document(self, query: dict, update: dict):
-        update = db_cursor.update_one(query, {"$set": {update}})
+        update = self.db_cursor.update_one(query, {"$set": {update}})
 
     def delete_document(self, query):
-        delete = db_cursor.delete_one(query)
+        delete = self.db_cursor.delete_one(query)
