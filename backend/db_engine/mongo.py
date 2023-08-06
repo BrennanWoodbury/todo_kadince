@@ -54,7 +54,7 @@ class DB_Cursor(DB_Connect):
         return self.document_ids
 
     def read_document(self, query: dict): 
-        document = self.db_cursor.find(query, {"_id": 0})
+        document = self.db_cursor.find(query, {})
         return document
     
     def update_document(self, query: dict, update: dict):

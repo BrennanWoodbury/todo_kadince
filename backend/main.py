@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from db_engine.mongo import DB_Cursor as db
 from bson import json_util, ObjectId
 from pydantic import BaseModel
+from typing import Optional
 import pydantic
 import logging
 import json
@@ -65,17 +66,20 @@ def get_tasks():
     tasks = {"tasks": []}
     for i in document:
         tasks["tasks"].append(i)
+        logging.debug(i)
+    tasks = json.loads(json_util.dumps(tasks))
     return tasks
 
 
 class Task(BaseModel):
     Name: str
+    Status: int | None = 0
 
 @app.post("/api/new_task")
 def new_task(task: Task):
     task = jsonable_encoder(task)
     if task["Name"] == "":
-        return JSONResponse(content = "", status_code=204)
+        return JSONResponse(content = "Value cannot be null", status_code=200)
     check_task_exists = todo_db.read_document(task)
     
     results = []
@@ -90,3 +94,8 @@ def new_task(task: Task):
         return JSONResponse(content="Success", status_code=201)
 
 
+@app.delete("/api/delete_task")
+def delete_task(task: Task):
+    task = jsonable_encoder(task)
+    todo_db.delete_document(task)
+    return JSONResponse(content="Document Removed", status_code=200)

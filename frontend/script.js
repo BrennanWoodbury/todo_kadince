@@ -1,57 +1,29 @@
-
+//
+// running on the page
+//
 document.addEventListener('DOMContentLoaded', () => {
+    displayTasks();
 
-    // // just a button to test connection to the backend database
-    // const testConnectButton = document.getElementById('test-connect-btn');
-
-    // testConnectButton.addEventListener('click', () => {
-    //     const apiUrl = '/api/tasks';
-
-    //     fetch(apiUrl)
-    //         .then((response) => {
-    //             if (!response.ok) {
-    //                 throw new Error('Network response was not ok');
-    //                 console.log(`${response}`);
-    //             }
-    //             return response.json();
-    //         })
-    //         .then((data) => {
-    //             console.log('API Response:', data);
-    //         })
-    //         .catch((error) => {
-    //             console.error('Error fetching data:', error);
-    //         });
-    // });
-
-
-
-    async function postData(url = "", data = {}) {
-        let response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-
-        return await response.json();
-    }
     // add new task
     const addTasKButton = document.getElementById('btn-add-task');
     addTasKButton.addEventListener('click', () => {
         let newTask = document.getElementById('input-form').value;
         data = {
-            Name: newTask
+            Name: newTask,
+            Status: 0
         };
         console.log(data);
 
         postData("/api/new_task", data)
             .then((response) => {
                 if (response == "Success") {
-                    displayAlert("Success!", "success");
+                    reloadPageAndShowAlert("Success!", "success");
                 }
                 else if (response == "Duplicate Value") {
                     displayAlert("Duplicate ToDo list item!", "warning")
+                }
+                else if (response == "Value cannot be null") {
+                    displayAlert("Value cannot be null!", "warning")
                 }
             })
             .then((response) => {
@@ -67,16 +39,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const deleteButton = document.getElementById("btn-delete")
     deleteButton.addEventListener("click", () => {
+        deleteData("/api/delete_task", data)
+            .then((response => {
+                if (response == "Document Removed") {
+                    reloadPageAndShowAlert("Document Removed.", "info")
+                };
+                console.log(response);
+            }))
 
-    })
+            .catch(error => {
+                displayAlert(`Error: ${error}`, "danger")
+            });
+    });
 
-    // 
 
 
 });
 
 
 
+// functions //
 
 // Display all the tasks
 function displayTasks() {
@@ -90,23 +72,60 @@ function displayTasks() {
 
             tasksArray.forEach(task => {
                 recordsHTML += `<div class="card mb-3">
-                    <div class="card-body">
+                    <div id=${task._id.$oid} class="card-body">
                         <div>${task.Name}</div>
-                        <button class="btn btn-secondary">Complete</button>
-                        <button class="btn btn-success">Edit</button>
-                        <button class="btn btn-danger">Delete</button>
+                        <button id=c${task._id.$oid} class="btn btn-success btn-complete">Complete</button>
+                        <button id=e${task._id.$oid} class="btn btn-secondary btn-edit">Edit</button>
+                        <button id=d${task._id.$oid} class="btn btn-danger btn-delete">Delete</button>
                     </div>
                 </div>`;
                 console.log(task);
             });
 
             recordsContainer.innerHTML = recordsHTML;
-            console.log(data);
         })
         .catch(error => console.error("Error fetching data: ", error));
 }
 
-displayTasks();
+
+// http methods that require a body
+async function postData(url = "", data = {}) {
+    let response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    return await response.json();
+}
+
+
+async function deleteData(url = "", data = {}) {
+    let response = await fetch(url, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    return await response.json();
+}
+
+
+async function putData(url = "", data = {}) {
+    let response = await fetch(url, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    });
+
+    return await response.json();
+}
 
 
 // Function to create an Alert message
@@ -123,8 +142,14 @@ function displayAlert(message, type = 'info') {
         alertElement.classList.remove("show");
         setTimeout(() => {
             alertContainer.removeChild(alertElement);
-        }, 1000)
-    }, 10000)
+        }, 1000);
+    }, 10000);
 
 
-}   
+}
+
+function reloadPageAndShowAlert(message, type) {
+    location.reload();
+
+    displayAlert(message, type);
+}
