@@ -30,13 +30,20 @@ $(document).ready(function () {
             });
     });
 
-    // Handle click event on buttons with class 'btn-delete'
-    $('.btn-danger').on('click', function () {
-        let parentElement = $(this).parent();
-        console.log("Working");
-    });
-
+    // logic for delete button
     $('#card-list').on('click', '.btn-delete', function () {
+        let parentElement = $(this).closest('.card-body');
+        console.log("working")
+    })
+
+    // logic for edit button
+    $('#card-list').on('click', '.btn-edit', function () {
+        let parentElement = $(this).closest('.card-body');
+        console.log("working")
+    })
+
+    // logic for complete button
+    $('#card-list').on('click', '.btn-complete', function () {
         let parentElement = $(this).closest('.card-body');
         console.log("working")
     })
