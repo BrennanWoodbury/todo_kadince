@@ -1,18 +1,16 @@
 //
 // running on the page
 //
-document.addEventListener('DOMContentLoaded', () => {
+$(document).ready(function () {
     displayTasks();
 
-    // add new task
-    const addTasKButton = document.getElementById('btn-add-task');
-    addTasKButton.addEventListener('click', () => {
-        let newTask = document.getElementById('input-form').value;
+    // Add new task
+    $('#btn-add-task').on('click', function () {
+        let newTask = $('#input-form').val();
         data = {
             Name: newTask,
             Status: 0
         };
-        console.log(data);
 
         postData("/api/new_task", data)
             .then((response) => {
@@ -20,42 +18,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     reloadPageAndShowAlert("Success!", "success");
                 }
                 else if (response == "Duplicate Value") {
-                    displayAlert("Duplicate ToDo list item!", "warning")
+                    displayAlert("Duplicate ToDo list item!", "warning");
                 }
                 else if (response == "Value cannot be null") {
-                    displayAlert("Value cannot be null!", "warning")
+                    displayAlert("Value cannot be null!", "warning");
                 }
             })
-            .then((response) => {
-                console.log(response);
-            })
             .catch((error) => {
-                console.error("Error: ", error)
-                displayAlert(`Error: ${error}`, danger)
-            });
-
-
-    });
-
-    const deleteButton = document.getElementById("btn-delete")
-    deleteButton.addEventListener("click", () => {
-        deleteData("/api/delete_task", data)
-            .then((response => {
-                if (response == "Document Removed") {
-                    reloadPageAndShowAlert("Document Removed.", "info")
-                };
-                console.log(response);
-            }))
-
-            .catch(error => {
-                displayAlert(`Error: ${error}`, "danger")
+                console.error("Error: ", error);
+                displayAlert(`Error: ${error}`, "danger");
             });
     });
 
+    // Handle click event on buttons with class 'btn-delete'
+    $('.btn-danger').on('click', function () {
+        let parentElement = $(this).parent();
+        console.log("Working");
+    });
 
-
+    $('#card-list').on('click', '.btn-delete', function () {
+        let parentElement = $(this).closest('.card-body');
+        console.log("working")
+    })
 });
-
 
 
 // functions //
@@ -153,3 +138,5 @@ function reloadPageAndShowAlert(message, type) {
 
     displayAlert(message, type);
 }
+
+
