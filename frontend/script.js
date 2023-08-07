@@ -44,14 +44,14 @@ $(document).ready(function () {
         let parentId = $(this).closest('[id]').attr('id');
         let taskName = $(this).closest('.card-body').find('.task-name').text();
 
-        data = {
+        let _data = {
             _id: parentId,
             Name: taskName,
             Status: 0
         }
 
-        console.log(data)
-        deleteData("/api/delete_task", data)
+        console.log(_data)
+        deleteData("/api/delete_task", _data)
 
         reloadPageAndShowAlert("Task deleted", "info")
 
@@ -75,28 +75,45 @@ $(document).ready(function () {
 
         $(`#save${parentId}`).on('click', function () {
             let updatedName = $(`#edit${parentId}`).val()
-            data = {
+            let _data = {
                 _id: parentId,
                 Name: updatedName
             };
-            putData("/api/update_task", data)
+            putData("/api/update_task", _data)
                 .then(response => {
                     console.log(response);
-                    reloadPageAndShowAlert("Successfully edited the task", "success")
+                    reloadPageAndShowAlert("Successfully edited the task", "info")
                 })
                 .catch((error) => {
                     console.error("Error: ", error);
                     displayAlert(`Error: ${error}`, "danger");
                 });
         })
-
+        $(`#cancel${parentId}`).on('click', function () {
+            reloadPageAndShowAlert("Cancelled edit", "secondary")
+        })
 
     })
 
     // logic for complete button
     $('#card-list').on('click', '.btn-complete', function () {
         let parentElement = $(this).closest('.card-body');
-        console.log("working")
+        let parentId = parentElement.attr('id');
+
+        let _data = {
+            _id: parentId
+        }
+
+        putData("/api/complete_task", _data)
+            .then(response => {
+                console.log(response);
+                reloadPageAndShowAlert("Successfully completed this task!", "success")
+            })
+            .catch((error) => {
+                console.error("Error: ", error);
+                displayAlert(`Error: ${error}`, "danger");
+            });
+
     })
 });
 
@@ -116,6 +133,7 @@ function displayTasks() {
             const recordsContainer = document.getElementById("card-list");
             let recordsHTML = "";
 
+            recordsHTML = `<h3> Task List: </h3>`
             tasksArray.forEach(task => {
                 recordsHTML += `<div class="card mb-3">
                     <div id=${task._id.$oid} class="card-body">

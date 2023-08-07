@@ -86,6 +86,9 @@ class Update_Task(BaseModel):
    id: str = Field(alias="_id")
    Name: Optional[str] 
 
+class Complete_Task(BaseModel):
+    id: str = Field(alias="_id") 
+
 # class Update_Task(BaseModel):
 
 
@@ -121,7 +124,6 @@ def delete_task(task: Update_Task):
 @app.put("/api/update_task")
 def update_task(task: Update_Task):
     task = jsonable_encoder(task)
-    logging.debug(task)
     query = {"_id": ObjectId(task["_id"])}
     update = {"Name": task["Name"]}
     todo_db.update_document(query, update)
@@ -129,7 +131,11 @@ def update_task(task: Update_Task):
     return JSONResponse(content="Document Updated", status_code=200)
 
 
-
-
-
+@app.put("/api/complete_task")
+def complete_task(task: Complete_Task):
+    task = jsonable_encoder(task)
+    logging.debug(task)
+    query = {"_id": ObjectId(task["_id"])}
+    update = {"Status": 1}
+    todo_db.update_document(query, update)
 
