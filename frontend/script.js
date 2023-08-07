@@ -1,9 +1,16 @@
-//
-// running on the page
-//
 $(document).ready(function () {
+    // Display all the tasks on the page
     displayTasks();
 
+    const alertMessage = sessionStorage.getItem('alertMessage');
+    const alertType = sessionStorage.getItem('alertType');
+
+    if (alertMessage && alertType) {
+        displayAlert(alertMessage, alertType);
+        // Clear the stored alert information after displaying it
+        sessionStorage.removeItem('alertMessage');
+        sessionStorage.removeItem('alertType');
+    }
     // Add new task
     $('#btn-add-task').on('click', function () {
         let newTask = $('#input-form').val();
@@ -11,6 +18,7 @@ $(document).ready(function () {
             Name: newTask,
             Status: 0
         };
+        console.log(data);
 
         postData("/api/new_task", data)
             .then((response) => {
@@ -33,13 +41,56 @@ $(document).ready(function () {
     // logic for delete button
     $('#card-list').on('click', '.btn-delete', function () {
         let parentElement = $(this).closest('.card-body');
-        console.log("working")
+        let parentId = $(this).closest('[id]').attr('id');
+        let taskName = $(this).closest('.card-body').find('.task-name').text();
+
+        data = {
+            _id: parentId,
+            Name: taskName,
+            Status: 0
+        }
+
+        console.log(data)
+        deleteData("/api/delete_task", data)
+
+        reloadPageAndShowAlert("Task deleted", "info")
+
     })
 
     // logic for edit button
     $('#card-list').on('click', '.btn-edit', function () {
         let parentElement = $(this).closest('.card-body');
-        console.log("working")
+        let thisElement = $(this).closest('.task-name');
+        let currentText = thisElement.text();
+        let parentId = parentElement.attr('id');
+
+        parentElement.html(`
+        <div class="card mb-3">
+            <div> 
+                <input id="edit${parentId}" type="text" class="form-control" value="${currentText}" placeholder="Edit task name..."/>
+                <button id="save${parentId}" class="btn btn-success btn-save"> Save </button>
+                <button id="cancel${parentId}" class="btn btn-secondary btn-cancel"> Cancel </button>
+            </div>
+        </div>`);
+
+        $(`#save${parentId}`).on('click', function () {
+            let updatedName = $(`#edit${parentId}`).val()
+            data = {
+                _id: parentId,
+                Name: updatedName
+            };
+            putData("/api/update_task", data)
+                .then(response => {
+                    console.log(response);
+                    reloadPageAndShowAlert("Successfully edited the task", "success")
+                })
+                .catch((error) => {
+                    console.error("Error: ", error);
+                    displayAlert(`Error: ${error}`, "danger");
+                });
+        })
+
+
     })
 
     // logic for complete button
@@ -48,6 +99,9 @@ $(document).ready(function () {
         console.log("working")
     })
 });
+
+
+
 
 
 // functions //
@@ -65,10 +119,10 @@ function displayTasks() {
             tasksArray.forEach(task => {
                 recordsHTML += `<div class="card mb-3">
                     <div id=${task._id.$oid} class="card-body">
-                        <div>${task.Name}</div>
-                        <button id=c${task._id.$oid} class="btn btn-success btn-complete">Complete</button>
-                        <button id=e${task._id.$oid} class="btn btn-secondary btn-edit">Edit</button>
-                        <button id=d${task._id.$oid} class="btn btn-danger btn-delete">Delete</button>
+                        <div class="task-name" >${task.Name}</div>
+                        <button class="btn btn-success btn-complete">Complete</button>
+                        <button class="btn btn-secondary btn-edit">Edit</button>
+                        <button class="btn btn-danger btn-delete">Delete</button>
                     </div>
                 </div>`;
                 console.log(task);
@@ -122,28 +176,23 @@ async function putData(url = "", data = {}) {
 
 // Function to create an Alert message
 function displayAlert(message, type = 'info') {
-    let alertContainer = document.getElementById("alert-div");
+    let alertElement = $(`<div class="alert alert-${type} fade show">${message}</div>`);
 
-    let alertElement = document.createElement("div");
-    alertElement.className = `alert alert-${type} fade show`;
-    alertElement.textContent = message;
-
-    alertContainer.appendChild(alertElement);
+    $("#alert-div").append(alertElement);
 
     setTimeout(() => {
-        alertElement.classList.remove("show");
+        alertElement.removeClass("show");
         setTimeout(() => {
-            alertContainer.removeChild(alertElement);
+            alertElement.remove();
         }, 1000);
     }, 10000);
-
-
 }
 
+// Store the alert information in sessionStorage before reloading the page
 function reloadPageAndShowAlert(message, type) {
+    sessionStorage.setItem('alertMessage', message);
+    sessionStorage.setItem('alertType', type);
+
     location.reload();
-
-    displayAlert(message, type);
 }
-
 

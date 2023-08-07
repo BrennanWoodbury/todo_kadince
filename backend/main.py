@@ -3,11 +3,12 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from db_engine.mongo import DB_Cursor as db
 from bson import json_util, ObjectId
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 import pydantic
 import logging
 import json
+import pymongo
 
 # pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
 
@@ -66,27 +67,42 @@ def get_tasks():
     tasks = {"tasks": []}
     for i in document:
         tasks["tasks"].append(i)
-        logging.debug(i)
     tasks = json.loads(json_util.dumps(tasks))
     return tasks
 
 
+def return_oid():
+    o = json.loads(json_util.dumps(ObjectId()))
+    return o["_id"]["$oid"]
+
+
+
 class Task(BaseModel):
-    Name: str
+    # id: Optional[str] = Field(alias="_id",default=json.loads(json_util.dumps(ObjectId()))["_id"]["$oid"]) 
+    Name: Optional[str]
     Status: int | None = 0
+
+class Update_Task(BaseModel):
+   id: str = Field(alias="_id")
+   Name: Optional[str] 
+
+# class Update_Task(BaseModel):
+
+
 
 @app.post("/api/new_task")
 def new_task(task: Task):
     task = jsonable_encoder(task)
+    logging.debug(f"Incoming request: {task}")
     if task["Name"] == "":
         return JSONResponse(content = "Value cannot be null", status_code=200)
     check_task_exists = todo_db.read_document(task)
     
     results = []
     for i in check_task_exists:
-        logging.debug(i)
+        logging.debug(f"Task exists: {i}")
         results.append(i)
-
+    
     if len(results) > 0:
         return JSONResponse(content="Duplicate Value", status_code=409)
     elif len(results) == 0: 
@@ -95,7 +111,25 @@ def new_task(task: Task):
 
 
 @app.delete("/api/delete_task")
-def delete_task(task: Task):
+def delete_task(task: Update_Task):
     task = jsonable_encoder(task)
-    todo_db.delete_document(task)
+    query = {"_id": ObjectId(task["_id"]), "Name": task["Name"]}
+    todo_db.delete_document(query)
     return JSONResponse(content="Document Removed", status_code=200)
+
+
+@app.put("/api/update_task")
+def update_task(task: Update_Task):
+    task = jsonable_encoder(task)
+    logging.debug(task)
+    query = {"_id": ObjectId(task["_id"])}
+    update = {"Name": task["Name"]}
+    todo_db.update_document(query, update)
+
+    return JSONResponse(content="Document Updated", status_code=200)
+
+
+
+
+
+
