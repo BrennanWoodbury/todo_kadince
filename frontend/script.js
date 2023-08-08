@@ -2,6 +2,7 @@ $(document).ready(function () {
     // Display all the tasks on the page
     displayTasks();
 
+
     const alertMessage = sessionStorage.getItem('alertMessage');
     const alertType = sessionStorage.getItem('alertType');
 
@@ -101,12 +102,12 @@ $(document).ready(function () {
         let parentId = parentElement.attr('id');
 
         let _data = {
-            _id: parentId
-        }
+            _id: parentId,
+            Name: null
+        };
 
         putData("/api/complete_task", _data)
             .then(response => {
-                console.log(response);
                 reloadPageAndShowAlert("Successfully completed this task!", "success")
             })
             .catch((error) => {
@@ -115,6 +116,113 @@ $(document).ready(function () {
             });
 
     })
+
+    $('#completed-tasks').on('click', '.btn-remove-from-completed', function () {
+        let parentElement = $(this).closest('.card-body');
+        let parentId = parentElement.attr('id');
+
+        let _data = {
+            _id: parentId,
+            Name: null
+        };
+
+        putData("/api/remove_completed_task", _data)
+            .then(response => {
+                reloadPageAndShowAlert("Re-added to Task List.", "success")
+            })
+            .catch((error) => {
+                console.error("Error: ", error);
+                displayAlert(`Error: ${error}`, "danger");
+            });
+    })
+
+
+    $('#btn-filter-pending').on('click', function () {
+        fetch("/api/tasks")
+            .then(response => response.json())
+            .then(data => {
+                const tasksArray = data.tasks;
+
+                const recordsContainer = document.getElementById("card-list");
+                let recordsHTML = "";
+
+                recordsHTML = `<h6><i> Filtered by Pending </i></h6>  `
+                tasksArray.forEach(task => {
+                    recordsHTML += `<div class="card mb-3">
+                    <div id=${task._id.$oid} class="card-body">
+                        <div class="task-name" >${task.Name}</div>
+                        <button class="btn btn-success btn-complete">Complete</button>
+                        <button class="btn btn-secondary btn-edit">Edit</button>
+                        <button class="btn btn-danger btn-delete">Delete</button>
+                    </div>
+                </div>
+                `;
+                });
+
+                $("#card-list").html(recordsHTML);
+
+
+
+
+
+
+            })
+            .catch(error => console.error("Error fetching data: ", error));;
+    })
+
+    $('#btn-filter-complete').on('click', function () {
+        fetch("/api/completed_tasks")
+            .then(response => response.json())
+            .then(data => {
+                const tasksArray = data.tasks;
+
+                const recordsContainer = document.getElementById("completed-tasks");
+                let recordsHTML = "";
+
+                recordsHTML = `<h6><i> Filtered by Completed</i></h6>`
+                tasksArray.forEach(task => {
+                    recordsHTML += `<div class="card mb-3">
+                    <div id=${task._id.$oid} class="card-body">
+                        <div class="task-name" ><i>${task.Name}</i></div>
+                        <button class="btn btn-dark btn-remove-from-completed">Remove from Completed</button>
+
+                    </div>
+                </div>
+                `;
+                });
+
+                $("#card-list").html(recordsHTML);
+            }
+            )
+    })
+
+    $('#btn-filter-all').on('click', function () {
+        fetch("/api/completed_tasks")
+            .then(response => response.json())
+            .then(data => {
+                const tasksArray = data.tasks;
+
+                const recordsContainer = document.getElementById("completed-tasks");
+                let recordsHTML = "";
+
+                recordsHTML = `<h6><i> Showing All Tasks </i></h6>`
+                tasksArray.forEach(task => {
+                    recordsHTML += `<div class="card mb-3">
+                    <div id=${task._id.$oid} class="card-body">
+                        <div class="task-name" ><i>${task.Name}</i></div>
+                        <button class="btn btn-dark btn-remove-from-completed">Remove from Completed</button>
+
+                    </div>
+                </div>
+                `;
+                });
+
+                $("#card-list").html(recordsHTML);
+            }
+            )
+    })
+
+
 });
 
 
@@ -133,7 +241,7 @@ function displayTasks() {
             const recordsContainer = document.getElementById("card-list");
             let recordsHTML = "";
 
-            recordsHTML = `<h3> Task List: </h3>`
+            recordsHTML = `  `
             tasksArray.forEach(task => {
                 recordsHTML += `<div class="card mb-3">
                     <div id=${task._id.$oid} class="card-body">
@@ -142,16 +250,46 @@ function displayTasks() {
                         <button class="btn btn-secondary btn-edit">Edit</button>
                         <button class="btn btn-danger btn-delete">Delete</button>
                     </div>
-                </div>`;
-                console.log(task);
+                </div>
+                `;
             });
 
-            recordsContainer.innerHTML = recordsHTML;
+            $("#card-list").html(recordsHTML);
+
+
+
+
+
+
         })
         .catch(error => console.error("Error fetching data: ", error));
 }
 
+function displayCompletedTasks() {
+    fetch("/api/completed_tasks")
+        .then(response => response.json())
+        .then(data => {
+            const tasksArray = data.tasks;
 
+            const recordsContainer = document.getElementById("completed-tasks");
+            let recordsHTML = "";
+
+            recordsHTML = `<h3> Completed Tasks: </h3>`
+            tasksArray.forEach(task => {
+                recordsHTML += `<div class="card mb-3">
+                    <div id=${task._id.$oid} class="card-body">
+                        <div class="task-name" ><i>${task.Name}</i></div>
+                        <button class="btn btn-dark btn-remove-from-completed">Remove from Completed</button>
+
+                    </div>
+                </div>
+                `;
+            });
+
+            $("#completed-tasks").html(recordsHTML);
+        }
+        )
+}
 // http methods that require a body
 async function postData(url = "", data = {}) {
     let response = await fetch(url, {

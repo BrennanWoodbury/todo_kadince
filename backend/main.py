@@ -1,3 +1,8 @@
+"""
+bulk of the backend logic, where the actual work is being done. 
+Everything else in the backend is in service of main.py
+"""
+
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -9,15 +14,12 @@ import pydantic
 import logging
 import json
 import pymongo
+from data_models import models
 
-# pydantic.json.ENCODERS_BY_TYPE[ObjectId]=str
 
 logging.basicConfig(filename="/var/log/fastapi/fastapi.log", level=logging.DEBUG)
 
-# from starlette.responses import RedirectResponse
-# from starlette.templating import Jinja2Templates
 
-# templates = Jinja2Templates(directory="templates")
 
 
 app = FastAPI(root_path="/api")
@@ -63,6 +65,24 @@ def health_check():
 # Logic
 @app.get("/api/tasks")
 def get_tasks():
+    document = todo_db.read_document(jsonable_encoder({"Status": 0}))
+    tasks = {"tasks": []}
+    for i in document:
+        tasks["tasks"].append(i)
+    tasks = json.loads(json_util.dumps(tasks))
+    return tasks
+
+@app.get("/api/completed_tasks")
+def completed_task():
+    document = todo_db.read_document(jsonable_encoder({"Status": 1}))
+    tasks = {"tasks": []}
+    for i in document:
+        tasks["tasks"].append(i)
+    tasks = json.loads(json_util.dumps(tasks))
+    return tasks
+
+@app.get("/api/tasks_all")
+def tasks_all():
     document = todo_db.read_document(jsonable_encoder({}))
     tasks = {"tasks": []}
     for i in document:
@@ -71,30 +91,10 @@ def get_tasks():
     return tasks
 
 
-def return_oid():
-    o = json.loads(json_util.dumps(ObjectId()))
-    return o["_id"]["$oid"]
-
-
-
-class Task(BaseModel):
-    # id: Optional[str] = Field(alias="_id",default=json.loads(json_util.dumps(ObjectId()))["_id"]["$oid"]) 
-    Name: Optional[str]
-    Status: int | None = 0
-
-class Update_Task(BaseModel):
-   id: str = Field(alias="_id")
-   Name: Optional[str] 
-
-class Complete_Task(BaseModel):
-    id: str = Field(alias="_id") 
-
-# class Update_Task(BaseModel):
-
 
 
 @app.post("/api/new_task")
-def new_task(task: Task):
+def new_task(task: models.Task):
     task = jsonable_encoder(task)
     logging.debug(f"Incoming request: {task}")
     if task["Name"] == "":
@@ -114,7 +114,7 @@ def new_task(task: Task):
 
 
 @app.delete("/api/delete_task")
-def delete_task(task: Update_Task):
+def delete_task(task: models.Update_Task):
     task = jsonable_encoder(task)
     query = {"_id": ObjectId(task["_id"]), "Name": task["Name"]}
     todo_db.delete_document(query)
@@ -122,7 +122,7 @@ def delete_task(task: Update_Task):
 
 
 @app.put("/api/update_task")
-def update_task(task: Update_Task):
+def update_task(task: models.Update_Task):
     task = jsonable_encoder(task)
     query = {"_id": ObjectId(task["_id"])}
     update = {"Name": task["Name"]}
@@ -131,11 +131,18 @@ def update_task(task: Update_Task):
     return JSONResponse(content="Document Updated", status_code=200)
 
 
+@app.put("/api/remove_completed_task")
+def remove_completed_task(task: models.Update_Task):
+    task = jsonable_encoder(task)
+    query = {"_id": ObjectId(task["_id"])}
+    update = {"Status": 0}
+    todo_db.update_document(query, update)
+
+
 @app.put("/api/complete_task")
-def complete_task(task: Complete_Task):
+def complete_task(task: models.Complete_Task):
     task = jsonable_encoder(task)
     logging.debug(task)
     query = {"_id": ObjectId(task["_id"])}
     update = {"Status": 1}
     todo_db.update_document(query, update)
-

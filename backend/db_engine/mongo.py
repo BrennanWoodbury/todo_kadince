@@ -1,3 +1,8 @@
+"""
+Database API -- any logic for directly working with the db is written here. For example: 
+all the interactions with the database in main.py are routed through a method written here. 
+"""
+
 from pymongo import MongoClient
 from dotenv import dotenv_values
 

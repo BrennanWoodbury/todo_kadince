@@ -20,14 +20,32 @@
         </div>
 
         <!-- Task List -->
-        <div class="row">
-            <div id="card-list" class="col-md-6">
-                <!-- Tasks go here -->
+        <div class="row container fluid">
+            <div class="dropdown">
+                <div class="col-lg-12">
+                    <h3> Task List: </h3>
 
+                    <button id="dropdown-filter" class="btn btn-secondary dropdown-toggle" type="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Filter
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-filter">
+                        <button id="btn-filter-pending" class="dropdown-item" type="button"> Pending </button>
+                        <button id="btn-filter-complete" class="dropdown-item" type="button"> Complete </button>
+                        <button id="btn-filter-all" class="dropdown-item" type="button"> All </button>
+                    </div>
+                </div>
+                <div id="card-list" class="col-lg-12">
+                    <!-- Tasks go here -->
+
+                </div>
             </div>
+
         </div>
 
+
     </div>
+
 
 
     <!-- Add reference to script.js -->
