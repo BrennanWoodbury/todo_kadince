@@ -117,7 +117,7 @@ $(document).ready(function () {
 
     })
 
-    $('#completed-tasks').on('click', '.btn-remove-from-completed', function () {
+    $('#card-list').on('click', '.btn-remove-from-completed', function () {
         let parentElement = $(this).closest('.card-body');
         let parentId = parentElement.attr('id');
 
@@ -179,7 +179,7 @@ $(document).ready(function () {
                 const recordsContainer = document.getElementById("completed-tasks");
                 let recordsHTML = "";
 
-                recordsHTML = `<h6><i> Filtered by Completed</i></h6>`
+                recordsHTML += `<h6><i> Filtered by Completed</i></h6>`
                 tasksArray.forEach(task => {
                     recordsHTML += `<div class="card mb-3">
                     <div id=${task._id.$oid} class="card-body">
@@ -197,36 +197,58 @@ $(document).ready(function () {
     })
 
     $('#btn-filter-all').on('click', function () {
-        fetch("/api/completed_tasks")
+        fetch("/api/tasks")
             .then(response => response.json())
             .then(data => {
                 const tasksArray = data.tasks;
 
-                const recordsContainer = document.getElementById("completed-tasks");
+                const recordsContainer = document.getElementById("card-list");
                 let recordsHTML = "";
 
-                recordsHTML = `<h6><i> Showing All Tasks </i></h6>`
+                recordsHTML = `<h6><i> Filtered by Pending </i></h6>  `
                 tasksArray.forEach(task => {
                     recordsHTML += `<div class="card mb-3">
                     <div id=${task._id.$oid} class="card-body">
-                        <div class="task-name" ><i>${task.Name}</i></div>
-                        <button class="btn btn-dark btn-remove-from-completed">Remove from Completed</button>
-
+                        <div class="task-name" >${task.Name}</div>
+                        <button class="btn btn-success btn-complete">Complete</button>
+                        <button class="btn btn-secondary btn-edit">Edit</button>
+                        <button class="btn btn-danger btn-delete">Delete</button>
                     </div>
                 </div>
                 `;
                 });
 
-                $("#card-list").html(recordsHTML);
-            }
-            )
+                fetch("/api/completed_tasks")
+                    .then(response => response.json())
+                    .then(data => {
+                        const tasksArray = data.tasks;
+
+                        const recordsContainer = document.getElementById("completed-tasks");
+
+
+                        recordsHTML += `<h6><i> Filtered by Completed</i></h6>`
+                        tasksArray.forEach(task => {
+                            recordsHTML += `<div class="card mb-3">
+                        <div id=${task._id.$oid} class="card-body">
+                            <div class="task-name" ><i>${task.Name}</i></div>
+                            <button class="btn btn-dark btn-remove-from-completed">Remove from Completed</button>
+    
+                        </div>
+                    </div>
+                    `;
+                        });
+                        $("#card-list").html(recordsHTML)
+
+
+
+                    });
+
+            });
+
+
+
     })
-
-
-});
-
-
-
+})
 
 
 // functions //

@@ -27,13 +27,13 @@ app = FastAPI(root_path="/api")
 
 todo_db = db(database="todo", collection = "tasks")
 
-# DB Methods
+
 @app.get("/")
 def return_root():
     return {"Ahoy": "Mateys!"}
 
 
-# DB Engine 
+
 @app.post("/api/db_engine/create")
 def create_document(insert: dict):
     todo_db.create_document(insert)
